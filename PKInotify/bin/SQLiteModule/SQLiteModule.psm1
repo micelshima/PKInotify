@@ -1,5 +1,10 @@
 if ([Environment]::Is64BitProcess){$arch="x64"}
-else{$arch="x86"}
+elseif([Environment]::Is64BitProcess -eq $false){$arch="x86"}
+else{
+	#powershell 2
+	if ([IntPtr]::size -eq 8){$arch="x64"}
+	else{$arch="x86"}
+}
 $modulepath = split-path -parent $MyInvocation.MyCommand.Definition
 
 #Load SQLite Library
