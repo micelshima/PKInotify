@@ -136,7 +136,7 @@ $tabControl1.Size = new-object System.Drawing.Size(($Form1.ClientSize.Width -10)
 $tabControl1.TabIndex = 2
 $form1.Controls.Add($tabControl1)
 $tabPage1 = New-Object System.Windows.Forms.TabPage
-$tabPage1.Text = "CA"
+$tabPage1.Text = "CA's & CDP's"
 $tabControl1.Controls.Add($tabPage1)
 $tabPage2 = New-Object System.Windows.Forms.TabPage
 $tabPage2.Text = "CRL"
@@ -158,15 +158,9 @@ $tabPage3.add_doubleclick({
 $tabPage4 = New-Object System.Windows.Forms.TabPage
 $tabPage4.Text = "Templates"
 $tabControl1.Controls.Add($tabPage4)
-$tabPage5 = New-Object System.Windows.Forms.TabPage
-$tabPage5.Text = "CDP"
-$tabControl1.Controls.Add($tabPage5)
 $tabPage6 = New-Object System.Windows.Forms.TabPage
-$tabPage6.Text = "Mails"
+$tabPage6.Text = "Settings"
 $tabControl1.Controls.Add($tabPage6)
-$tabPage7 = New-Object System.Windows.Forms.TabPage
-$tabPage7.Text = "Settings"
-$tabControl1.Controls.Add($tabPage7)
 ####TAB 1 CONTENT (CA)
 #textbox
 $textbox1ca = New-Object System.Windows.Forms.textbox
@@ -198,7 +192,7 @@ $button1.Add_Click({
 #listbox
 $ListBox1 = New-Object System.Windows.Forms.ListView
 $ListBox1.Location = New-Object System.Drawing.Point(10,40) 
-$ListBox1.Size = New-Object System.Drawing.Size(($tabControl1.size.width -30),($tabControl1.size.height -80))
+$ListBox1.Size = New-Object System.Drawing.Size(($tabControl1.size.width -30),($tabControl1.size.height -280))
 $ListBox1.MultiSelect = 0
 $ListBox1.FullRowSelect = $true
 $ListBox1.GridLines = $true
@@ -224,6 +218,61 @@ $ListBox1.add_doubleclick({
 	write-sqlite $database $qry
 	$val=fill-listbox $listbox1
 	})
+#textbox
+$textbox5path = New-Object System.Windows.Forms.textbox
+$textbox5path.Location = New-Object System.Drawing.Point(10,210) 
+$textbox5path.Size = new-object System.Drawing.Size(300,20)
+$textbox5path.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$tabPage1.controls.add($textbox5path)
+#textbox
+$textbox5description = New-Object System.Windows.Forms.textbox
+$textbox5description.Location = New-Object System.Drawing.Point(310,210) 
+$textbox5description.Size = new-object System.Drawing.Size(300,20)
+$textbox5description.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$tabPage1.controls.add($textbox5description)
+#button
+$button5 = New-Object System.Windows.Forms.Button
+$button5.Location = new-object System.Drawing.Point(850,210)
+$button5.Size = new-object System.Drawing.Size(30,20)
+$button5.BackColor = [System.Drawing.Color]::LightSalmon
+$button5.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$button5.Font = new-object System.Drawing.Font("Webdings",13)
+$button5.text="a"
+$tabPage1.controls.add($button5)
+$button5.Add_Click({
+	$qry="insert into CDP(path,description) values('{0}','{1}')" -f $textbox5path.text,$textbox5description.text
+	write-SQLite $database $qry
+	$val=fill-listbox $listbox5
+	$textbox5path.text=$textbox5description.text=""
+})
+#listbox
+$ListBox5 = New-Object System.Windows.Forms.ListView
+$ListBox5.name="CDP"
+$ListBox5.Location = New-Object System.Drawing.Point(10,240) 
+$ListBox5.Size = New-Object System.Drawing.Size(($tabControl1.size.width -30),($tabControl1.size.height -280))
+$ListBox5.MultiSelect = 0
+$ListBox5.FullRowSelect = $true
+$ListBox5.GridLines = $true
+$ListBox5.view="Details"
+$ListBox5.HeaderStyle="Clickable" #'none', 'Nonclickable', 'Clickable'
+$ListBox5.add_ColumnClick({SortListView $_.Column $ListBox5})
+$ListBox5.Columns.Add("path", 300, "left")|out-null
+$ListBox5.Columns.Add("description", 300, "left")|out-null
+$ListBox5.borderstyle = 2 #0=sin borde, 2=borde 1=hundido
+$tabPage1.Controls.Add($ListBox5)
+$val=fill-listbox $listbox5
+$ListBox5.add_click({
+	$textbox5path.text=$ListBox5.SelectedItems[0].SubItems[0].Text
+	$textbox5description.text=$ListBox5.SelectedItems[0].SubItems[1].Text
+	})
+$ListBox5.add_doubleclick({
+	$textbox5path.text=$ListBox5.SelectedItems[0].SubItems[0].Text
+	$textbox5description.text=$ListBox5.SelectedItems[0].SubItems[1].Text
+	$qry="delete from cdp where path='{0}'" -f $textbox5path.text
+	write-sqlite $database $qry
+	$val=fill-listbox $listbox5
+	})
+
 ####TAB 2 CONTENT (CRL)
 #textbox
 $textbox2crl = New-Object System.Windows.Forms.textbox
@@ -445,77 +494,99 @@ $ListBox4.add_doubleclick({
 	write-sqlite $database $qry
 	$val=fill-listbox $listbox4
 	})
-####TAB 5 CONTENT (CDP)
+
+####TAB 7 CONTENT (Settings)
+#label
+$label7smtpserver = New-Object System.Windows.Forms.Label
+$label7smtpserver.Location = New-Object System.Drawing.Point(10,10) 
+$label7smtpserver.Size = New-Object System.Drawing.Size(100,20)
+$label7smtpserver.Text = "SMTP Server:"
+$tabPage6.Controls.Add($label7smtpserver)
 #textbox
-$textbox5path = New-Object System.Windows.Forms.textbox
-$textbox5path.Location = New-Object System.Drawing.Point(10,10) 
-$textbox5path.Size = new-object System.Drawing.Size(300,20)
-$textbox5path.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$tabPage5.controls.add($textbox5path)
+$textbox7smtpserver = New-Object System.Windows.Forms.textbox
+$textbox7smtpserver.Location = New-Object System.Drawing.Point(110,10) 
+$textbox7smtpserver.Size = new-object System.Drawing.Size(300,20)
+$textbox7smtpserver.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$textbox7smtpserver.text=$settings.smtpserver
+$tabPage6.controls.add($textbox7smtpserver)
+#label
+$label7emailfrom = New-Object System.Windows.Forms.Label
+$label7emailfrom.Location = New-Object System.Drawing.Point(10,40) 
+$label7emailfrom.Size = New-Object System.Drawing.Size(100,20)
+$label7emailfrom.Text = "Email from:"
+$tabPage6.Controls.Add($label7emailfrom)
 #textbox
-$textbox5description = New-Object System.Windows.Forms.textbox
-$textbox5description.Location = New-Object System.Drawing.Point(310,10) 
-$textbox5description.Size = new-object System.Drawing.Size(300,20)
-$textbox5description.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$tabPage5.controls.add($textbox5description)
+$textbox7emailfrom = New-Object System.Windows.Forms.textbox
+$textbox7emailfrom.Location = New-Object System.Drawing.Point(110,40) 
+$textbox7emailfrom.Size = new-object System.Drawing.Size(300,20)
+$textbox7emailfrom.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$textbox7emailfrom.text=$settings.emailfrom
+$tabPage6.controls.add($textbox7emailfrom)
+#label
+$label7cerwarning = New-Object System.Windows.Forms.Label
+$label7cerwarning.Location = New-Object System.Drawing.Point(10,70) 
+$label7cerwarning.Size = New-Object System.Drawing.Size(100,20)
+$label7cerwarning.Text = "CER Warning:"
+$tabPage6.Controls.Add($label7cerwarning)
+#textbox
+$textbox7cerwarning = New-Object System.Windows.Forms.textbox
+$textbox7cerwarning.Location = New-Object System.Drawing.Point(110,70) 
+$textbox7cerwarning.Size = new-object System.Drawing.Size(40,20)
+$textbox7cerwarning.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$textbox7cerwarning.text=$settings.cerwarning
+$tabPage6.controls.add($textbox7cerwarning)
+#label
+$label7days1 = New-Object System.Windows.Forms.Label
+$label7days1.Location = New-Object System.Drawing.Point(160,70) 
+$label7days1.Size = New-Object System.Drawing.Size(100,20)
+$label7days1.Text = "days"
+$tabPage6.Controls.Add($label7days1)
+#label
+$label7crlwarning = New-Object System.Windows.Forms.Label
+$label7crlwarning.Location = New-Object System.Drawing.Point(10,100) 
+$label7crlwarning.Size = New-Object System.Drawing.Size(100,20)
+$label7crlwarning.Text = "CRL Warning:"
+$tabPage6.Controls.Add($label7crlwarning)
+#textbox
+$textbox7crlwarning = New-Object System.Windows.Forms.textbox
+$textbox7crlwarning.Location = New-Object System.Drawing.Point(110,100) 
+$textbox7crlwarning.Size = new-object System.Drawing.Size(40,20)
+$textbox7crlwarning.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
+$textbox7crlwarning.text=$settings.crlwarning
+$tabPage6.controls.add($textbox7crlwarning)
+#label
+$label7days2 = New-Object System.Windows.Forms.Label
+$label7days2.Location = New-Object System.Drawing.Point(160,100) 
+$label7days2.Size = New-Object System.Drawing.Size(100,20)
+$label7days2.Text = "days"
+$tabPage6.Controls.Add($label7days2)
 #button
-$button5 = New-Object System.Windows.Forms.Button
-$button5.Location = new-object System.Drawing.Point(850,10)
-$button5.Size = new-object System.Drawing.Size(30,20)
-$button5.BackColor = [System.Drawing.Color]::LightSalmon
-$button5.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$button5.Font = new-object System.Drawing.Font("Webdings",13)
-$button5.text="a"
-$tabPage5.controls.add($button5)
-$button5.Add_Click({
-	$qry="insert into CDP(path,description) values('{0}','{1}')" -f $textbox5path.text,$textbox5description.text
+$button7 = New-Object System.Windows.Forms.Button
+$button7.Location = new-object System.Drawing.Point(170,150)
+$button7.Size = new-object System.Drawing.Size(130,20)
+$button7.BackColor = [System.Drawing.Color]::LightSalmon
+$button7.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$button7.text="Save"
+$tabPage6.controls.add($button7)
+$button7.Add_Click({
+	$qry="update settings set SMTPserver='{0}', emailfrom='{1}',cerwarning={2},crlwarning={3}" -f $textbox7smtpserver.text, $textbox7emailfrom.text, $textbox7cerwarning.text, $textbox7crlwarning.text
 	write-SQLite $database $qry
-	$val=fill-listbox $listbox5
-	$textbox5path.text=$textbox5description.text=""
 })
-#listbox
-$ListBox5 = New-Object System.Windows.Forms.ListView
-$ListBox5.name="CDP"
-$ListBox5.Location = New-Object System.Drawing.Point(10,40) 
-$ListBox5.Size = New-Object System.Drawing.Size(($tabControl1.size.width -30),($tabControl1.size.height -80))
-$ListBox5.MultiSelect = 0
-$ListBox5.FullRowSelect = $true
-$ListBox5.GridLines = $true
-$ListBox5.view="Details"
-$ListBox5.HeaderStyle="Clickable" #'none', 'Nonclickable', 'Clickable'
-$ListBox5.add_ColumnClick({SortListView $_.Column $ListBox5})
-$ListBox5.Columns.Add("path", 300, "left")|out-null
-$ListBox5.Columns.Add("description", 300, "left")|out-null
-$ListBox5.borderstyle = 2 #0=sin borde, 2=borde 1=hundido
-$tabPage5.Controls.Add($ListBox5)
-$val=fill-listbox $listbox5
-$ListBox5.add_click({
-	$textbox5path.text=$ListBox5.SelectedItems[0].SubItems[0].Text
-	$textbox5description.text=$ListBox5.SelectedItems[0].SubItems[1].Text
-	})
-$ListBox5.add_doubleclick({
-	$textbox5path.text=$ListBox5.SelectedItems[0].SubItems[0].Text
-	$textbox5description.text=$ListBox5.SelectedItems[0].SubItems[1].Text
-	$qry="delete from cdp where path='{0}'" -f $textbox5path.text
-	write-sqlite $database $qry
-	$val=fill-listbox $listbox5
-	})
-###TAB 6 CONTENT (Mails)
 #textbox
 $textbox6mail = New-Object System.Windows.Forms.textbox
-$textbox6mail.Location = New-Object System.Drawing.Point(10,10) 
+$textbox6mail.Location = New-Object System.Drawing.Point(420,10) 
 $textbox6mail.Size = new-object System.Drawing.Size(300,20)
 $textbox6mail.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
 $tabPage6.controls.add($textbox6mail)
 #textbox
 $textbox6cer = New-Object System.Windows.Forms.textbox
-$textbox6cer.Location = New-Object System.Drawing.Point(310,10) 
+$textbox6cer.Location = New-Object System.Drawing.Point(720,10) 
 $textbox6cer.Size = new-object System.Drawing.Size(60,20)
 $textbox6cer.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
 $tabPage6.controls.add($textbox6cer)
 #textbox
 $textbox6crl = New-Object System.Windows.Forms.textbox
-$textbox6crl.Location = New-Object System.Drawing.Point(370,10) 
+$textbox6crl.Location = New-Object System.Drawing.Point(780,10) 
 $textbox6crl.Size = new-object System.Drawing.Size(60,20)
 $textbox6crl.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
 $tabPage6.controls.add($textbox6crl)
@@ -537,8 +608,8 @@ $button6.Add_Click({
 #listbox
 $ListBox6 = New-Object System.Windows.Forms.ListView
 $ListBox6.name="Mails"
-$ListBox6.Location = New-Object System.Drawing.Point(10,40) 
-$ListBox6.Size = New-Object System.Drawing.Size(($tabControl1.size.width -30),($tabControl1.size.height -80))
+$ListBox6.Location = New-Object System.Drawing.Point(420,40) 
+$ListBox6.Size = New-Object System.Drawing.Size(($tabControl1.size.width -440),($tabControl1.size.height -80))
 $ListBox6.MultiSelect = 0
 $ListBox6.FullRowSelect = $true
 $ListBox6.GridLines = $true
@@ -564,83 +635,6 @@ $ListBox6.add_doubleclick({
 	write-sqlite $database $qry
 	$val=fill-listbox $listbox6
 	})
-####TAB 7 CONTENT (Settings)
-#label
-$label7smtpserver = New-Object System.Windows.Forms.Label
-$label7smtpserver.Location = New-Object System.Drawing.Point(10,10) 
-$label7smtpserver.Size = New-Object System.Drawing.Size(100,20)
-$label7smtpserver.Text = "SMTP Server:"
-$tabPage7.Controls.Add($label7smtpserver)
-#textbox
-$textbox7smtpserver = New-Object System.Windows.Forms.textbox
-$textbox7smtpserver.Location = New-Object System.Drawing.Point(110,10) 
-$textbox7smtpserver.Size = new-object System.Drawing.Size(300,20)
-$textbox7smtpserver.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$textbox7smtpserver.text=$settings.smtpserver
-$tabPage7.controls.add($textbox7smtpserver)
-#label
-$label7emailfrom = New-Object System.Windows.Forms.Label
-$label7emailfrom.Location = New-Object System.Drawing.Point(10,40) 
-$label7emailfrom.Size = New-Object System.Drawing.Size(100,20)
-$label7emailfrom.Text = "Email from:"
-$tabPage7.Controls.Add($label7emailfrom)
-#textbox
-$textbox7emailfrom = New-Object System.Windows.Forms.textbox
-$textbox7emailfrom.Location = New-Object System.Drawing.Point(110,40) 
-$textbox7emailfrom.Size = new-object System.Drawing.Size(300,20)
-$textbox7emailfrom.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$textbox7emailfrom.text=$settings.emailfrom
-$tabPage7.controls.add($textbox7emailfrom)
-#label
-$label7cerwarning = New-Object System.Windows.Forms.Label
-$label7cerwarning.Location = New-Object System.Drawing.Point(10,70) 
-$label7cerwarning.Size = New-Object System.Drawing.Size(100,20)
-$label7cerwarning.Text = "CER Warning:"
-$tabPage7.Controls.Add($label7cerwarning)
-#textbox
-$textbox7cerwarning = New-Object System.Windows.Forms.textbox
-$textbox7cerwarning.Location = New-Object System.Drawing.Point(110,70) 
-$textbox7cerwarning.Size = new-object System.Drawing.Size(40,20)
-$textbox7cerwarning.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$textbox7cerwarning.text=$settings.cerwarning
-$tabPage7.controls.add($textbox7cerwarning)
-#label
-$label7days1 = New-Object System.Windows.Forms.Label
-$label7days1.Location = New-Object System.Drawing.Point(160,70) 
-$label7days1.Size = New-Object System.Drawing.Size(100,20)
-$label7days1.Text = "days"
-$tabPage7.Controls.Add($label7days1)
-#label
-$label7crlwarning = New-Object System.Windows.Forms.Label
-$label7crlwarning.Location = New-Object System.Drawing.Point(10,100) 
-$label7crlwarning.Size = New-Object System.Drawing.Size(100,20)
-$label7crlwarning.Text = "CRL Warning:"
-$tabPage7.Controls.Add($label7crlwarning)
-#textbox
-$textbox7crlwarning = New-Object System.Windows.Forms.textbox
-$textbox7crlwarning.Location = New-Object System.Drawing.Point(110,100) 
-$textbox7crlwarning.Size = new-object System.Drawing.Size(40,20)
-$textbox7crlwarning.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$textbox7crlwarning.text=$settings.crlwarning
-$tabPage7.controls.add($textbox7crlwarning)
-#label
-$label7days2 = New-Object System.Windows.Forms.Label
-$label7days2.Location = New-Object System.Drawing.Point(160,100) 
-$label7days2.Size = New-Object System.Drawing.Size(100,20)
-$label7days2.Text = "days"
-$tabPage7.Controls.Add($label7days2)
-#button
-$button7 = New-Object System.Windows.Forms.Button
-$button7.Location = new-object System.Drawing.Point(170,150)
-$button7.Size = new-object System.Drawing.Size(130,20)
-$button7.BackColor = [System.Drawing.Color]::LightSalmon
-$button7.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$button7.text="Save"
-$tabPage7.controls.add($button7)
-$button7.Add_Click({
-	$qry="update settings set SMTPserver='{0}', emailfrom='{1}',cerwarning={2},crlwarning={3}" -f $textbox7smtpserver.text, $textbox7emailfrom.text, $textbox7cerwarning.text, $textbox7crlwarning.text
-	write-SQLite $database $qry
-})
 #muestro el formulario
 write-host ''
 write-host '  8888888P.  888   ,888 888                   888         .d888 '
