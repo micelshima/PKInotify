@@ -14,7 +14,7 @@ The idea is to schedule pkinotifyCLI once of twice per week and manually execute
 
 Then you can exclude the certificates which are not in production (in use) and add granular email notifications if needed
 
-![alt tag](https://2.bp.blogspot.com/-2X4K5LJ_gUg/WGOJFxbnyoI/AAAAAAAAB6s/yk9JnIbYRY42c_UD_mG9iaMHX5_ADyikACLcB/s1600/Screenshot%2B-%2B28_12_2016%2B%252C%2B10_34_32.jpg)
+![alt tag](https://3.bp.blogspot.com/-tARKP7Yanw0/WLvwJsE3AeI/AAAAAAAAB7U/-DamEXxqXSMXkile0wGvvFVaAL59pWjvQCLcB/s1600/Sin%2Bt%25C3%25ADtulo-1.jpg)
 
 GUI USAGE
 
