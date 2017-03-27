@@ -121,12 +121,14 @@ catch{
 }
 $qry="select *, (julianday(notafter) - julianday('NOW')) as days  from cer where inuse=1 and (julianday(notafter) - julianday('NOW'))<{0}" -f $settings.cerwarning
 $CERs=read-SQLite $database $qry
-$CERs|%{
+$CERs|group mail|%{
     $subject="PKInotify: Caducidad CER's"
     $targetmails=$cermails
-    if ($_.mail.length -gt 1){$targetmails+=$_.mail}
-    $body="<html><body><p>Buenos dias,</p><p>El {0:dd/MM/yyyy} (en {3:0} dias) caduca el certificado <b>{1}</b> de la entidad certificadora <b>{2}</b>.</p></body></html>" -f $_.notafter,$_.commonname,$_.ca,$_.days
-    send-email $settings.smtpserver $settings.emailFrom $subject $body $($targetmails -join ",")
+    if ($_.values.length -gt 1){$targetmails+=$_.values}
+    $body="<html><body><p>Buenos dias,</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
+	$_.group|sort days|%{$body+="<tr><td>{0:dd/MM/yyyy}</td><td>{3:0} dias</td><td>{1}</td><td>{2}</td></tr>" -f $_.notafter,$_.commonname,$_.ca,$_.days}    
+	$body+="</table></body></html>"
+	send-email $settings.smtpserver $settings.emailFrom $subject $body $($targetmails -join ",")
 }
 start-sleep -s 3
 
