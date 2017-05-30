@@ -369,12 +369,12 @@ $textbox3notafter.Location = New-Object System.Drawing.Point(470,10)
 $textbox3notafter.Size = new-object System.Drawing.Size(130,20)
 $textbox3notafter.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
 $tabPage3.controls.add($textbox3notafter)
-#textbox
-$textbox3inuse = New-Object System.Windows.Forms.textbox
+#combobox
+$textbox3inuse = New-Object System.Windows.Forms.ComboBox 
 $textbox3inuse.Location = New-Object System.Drawing.Point(600,10) 
-$textbox3inuse.Size = new-object System.Drawing.Size(50,20)
-$textbox3inuse.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$tabPage3.controls.add($textbox3inuse)
+$textbox3inuse.Size = New-Object System.Drawing.Size(50,20)
+$tabPage3.Controls.Add($textbox3inuse)
+$textbox3inuse.items.addrange(@("True","False"))
 #textbox
 $textbox3mail = New-Object System.Windows.Forms.textbox
 $textbox3mail.Location = New-Object System.Drawing.Point(650,10) 
