@@ -578,18 +578,18 @@ $textbox6mail.Location = New-Object System.Drawing.Point(420,10)
 $textbox6mail.Size = new-object System.Drawing.Size(300,20)
 $textbox6mail.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
 $tabPage6.controls.add($textbox6mail)
-#textbox
-$textbox6cer = New-Object System.Windows.Forms.textbox
+#combobox
+$textbox6cer = New-Object System.Windows.Forms.ComboBox 
 $textbox6cer.Location = New-Object System.Drawing.Point(720,10) 
-$textbox6cer.Size = new-object System.Drawing.Size(60,20)
-$textbox6cer.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$tabPage6.controls.add($textbox6cer)
-#textbox
-$textbox6crl = New-Object System.Windows.Forms.textbox
+$textbox6cer.Size = New-Object System.Drawing.Size(60,20)
+$tabPage6.Controls.Add($textbox6cer)
+$textbox6cer.items.addrange(@("True","False"))
+#combobox
+$textbox6crl = New-Object System.Windows.Forms.ComboBox 
 $textbox6crl.Location = New-Object System.Drawing.Point(780,10) 
-$textbox6crl.Size = new-object System.Drawing.Size(60,20)
-$textbox6crl.borderstyle = 2 #0=sin borde, 1=borde 2=hundido
-$tabPage6.controls.add($textbox6crl)
+$textbox6crl.Size = New-Object System.Drawing.Size(60,20)
+$tabPage6.Controls.Add($textbox6crl)
+$textbox6crl.items.addrange(@("True","False"))
 #button
 $button6 = New-Object System.Windows.Forms.Button
 $button6.Location = new-object System.Drawing.Point(850,10)
