@@ -90,9 +90,8 @@ $listbox.Items.Addrange($itm)
 return $rs
 }
 ### main ###
-$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-$database = "$scriptPath\pkinotify.s3db"
-import-module "$scriptPath\SQLiteModule"
+$database = "$PSScriptRoot\pkinotify.s3db"
+import-module "$PSScriptRoot\..\_Modules\SQLiteModule"
 $ahora=get-date
 $qry="select * from settings"
 $settings=read-SQLite $database $qry
@@ -391,7 +390,7 @@ $button3.Font = new-object System.Drawing.Font("Webdings",13)
 $button3.text="a"
 $tabPage3.controls.add($button3)
 $button3.Add_Click({
-	$qry="insert into CER(ca,commonname,template,notafter,inuse,mail,requestername) values('{0}','{1}','{2}','{3:yyyy-MM-dd HH:mm:ss}','{4}','{5}','{6}')" -f $textbox3ca.text, $textbox3commonname.text, $textbox3template.text, [datetime]$textbox3notafter.text,[int][boolean]::Parse($textbox3inuse.text),$textbox3mail.text,$textbox3requestername.text
+	$qry="insert into CER(ca,commonname,template,notafter,inuse,mail,requestername) values('{0}','{1}','{2}','{3:yyyy-MM-dd} 00:00:00','{4}','{5}','{6}')" -f $textbox3ca.text, $textbox3commonname.text, $textbox3template.text, [datetime]$textbox3notafter.text,[int][boolean]::Parse($textbox3inuse.text),$textbox3mail.text,$textbox3requestername.text
     write-SQLite $database $qry
 	$val=fill-listbox $listbox3
 	$textbox3ca.text=$textbox3commonname.text=$textbox3requestername.text=$textbox3template.text=$textbox3notafter.text=$textbox3inuse.text=$textbox3mail.text=""
