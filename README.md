@@ -1,4 +1,4 @@
-# PKInotify
+# PKI Notify v2
 I created a pair of powershell scripts to keep track of certificate expiration and CRL expiration in a PKI.
 
 pkinotifyGUI will show a form to fill in with your infrastructure settings:
