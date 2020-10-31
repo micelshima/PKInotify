@@ -1,0 +1,47 @@
+CREATE TABLE [ca] (
+[ca] VARCHAR(50)  PRIMARY KEY NULL,
+[servername] VARCHAR(50)  NULL,
+[CDP] VARCHAR(100)  NULL
+)
+
+CREATE TABLE [cer] (
+[ca] VARCHAR(50)  NULL,
+[commonname] VARCHAR(50)  NULL,
+[template] VARCHAR(100)  NULL,
+[notbefore] DATE  NULL,
+[notafter] DATE  NULL,
+[mail] VARCHAR(100)  NULL,
+[inuse] BOOLEAN  NULL,
+[requestername] VARCHAR(50)  NULL,
+PRIMARY KEY ([ca],[commonname],[template],[notafter])
+)
+
+CREATE TABLE [crl] (
+[cdp] VARCHAR(100)  NULL,
+[crl] VARCHAR(50)  NULL,
+[expirationdate] DATE  NULL,
+PRIMARY KEY ([cdp],[crl])
+)
+
+CREATE TABLE [mails] (
+[mail] VARCHAR(100)  PRIMARY KEY NULL,
+[cer] BOOLEAN  NULL,
+[crl] BOOLEAN  NULL
+)
+
+CREATE TABLE [settings] (
+[SMTPserver] VARCHAR(100)  NULL,
+[emailfrom] VARCHAR(100)  NULL,
+[CERwarning] INTEGER  NULL,
+[CRLwarning] INTEGER  NULL
+)
+
+CREATE TABLE [templates] (
+[id] VARCHAR(100)  UNIQUE NULL PRIMARY KEY,
+[description] VARCHAR(50)  NULL
+)
+
+CREATE TABLE [version] (
+[CA] VARCHAR(50)  NULL,
+[timestamp] TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL
+)

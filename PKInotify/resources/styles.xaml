@@ -1,0 +1,15 @@
+<ResourceDictionary
+xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+
+<SolidColorBrush x:Key="backcolor" Color="White"/>
+		<SolidColorBrush x:Key="forecolor" Color="#FF444444"/>
+		<SolidColorBrush x:Key="expired" Color="Silver"/>
+		<SolidColorBrush x:Key="critical" Color="FireBrick"/>
+		<SolidColorBrush x:Key="warning" Color="Gold"/>
+		<SolidColorBrush x:Key="buttonnew" Color="MediumSeaGreen"/>
+		<SolidColorBrush x:Key="buttondelete" Color="FireBrick"/>
+		<SolidColorBrush x:Key="mailicon" Color="DodgerBlue"/>
+
+</ResourceDictionary>

@@ -1,0 +1,185 @@
+<Controls:MetroWindow
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+xmlns:enums="clr-namespace:SimpleDialogs.Demo.Enumerators"
+xmlns:Dialogs="clr-namespace:SimpleDialogs;assembly=SimpleDialogs"
+xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+ BorderThickness="1" Name="MainPanel" Height="700" Width="1100" Title="SistemasWin | PKI Notify GUI" WindowStartupLocation="CenterScreen" >
+
+	<Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="..\resources\Icons.xaml" />
+				<ResourceDictionary Source="..\resources\styles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+	<Grid>
+
+        <Grid.Resources>
+
+            <DataTemplate x:Key="MenuItemTemplate" DataType="{x:Type Controls:HamburgerMenuIconItem}">
+                <Grid Height="48">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+					<ContentControl Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+					   <Rectangle Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+							<Rectangle.Fill>
+								<VisualBrush Stretch="Fill" Visual="{Binding Icon}" />
+							</Rectangle.Fill>
+						</Rectangle>
+					</ContentControl>
+                    <TextBlock Grid.Column="1"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               Foreground="White"
+                               Text="{Binding Label}" />
+                </Grid>
+            </DataTemplate>
+
+          <DataTemplate x:Key="OptionsMenuItemTemplate" DataType="{x:Type Controls:HamburgerMenuIconItem}">
+                <Grid Height="48">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                   <ContentControl Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+					   <Rectangle Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+							<Rectangle.Fill>
+								<VisualBrush Stretch="Fill" Visual="{Binding Icon}" />
+							</Rectangle.Fill>
+						</Rectangle>
+					</ContentControl>
+                    <TextBlock Grid.Column="1"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               Foreground="White"
+                               Text="{Binding Label}" />
+                </Grid>
+            </DataTemplate>
+
+        </Grid.Resources>
+
+        <Controls:HamburgerMenu x:Name="HamburgerMenuControl"
+                                Foreground="White"
+                                PaneBackground="{StaticResource forecolor}"
+                                IsPaneOpen="False"
+                                ItemTemplate="{StaticResource MenuItemTemplate}"
+                                OptionsItemTemplate="{StaticResource OptionsMenuItemTemplate}"
+                                DisplayMode="CompactInline"
+								>
+
+            <!--  Items  -->
+            <Controls:HamburgerMenu.ItemsSource>
+
+                <Controls:HamburgerMenuItemCollection>
+                    <Controls:HamburgerMenuIconItem Icon="{StaticResource appbar_shield}"
+                                                    Label="Certificates">
+						<Controls:HamburgerMenuIconItem.Tag>
+							<Grid x:Name="Certificates"></Grid>
+                        </Controls:HamburgerMenuIconItem.Tag>
+                    </Controls:HamburgerMenuIconItem>
+
+                    <Controls:HamburgerMenuIconItem Icon="{StaticResource appbar_interface_list}"
+                                                    Label="CRL's">
+						<Controls:HamburgerMenuIconItem.Tag>
+							<Grid x:Name="CRLs"></Grid>
+                        </Controls:HamburgerMenuIconItem.Tag>
+                    </Controls:HamburgerMenuIconItem>
+
+					<Controls:HamburgerMenuIconItem Icon="{StaticResource appbar_network_server}"
+                                                     Label="CA Settings">
+						<Controls:HamburgerMenuIconItem.Tag>
+                            <Grid x:Name="CASettings"></Grid>
+                        </Controls:HamburgerMenuIconItem.Tag>
+                    </Controls:HamburgerMenuIconItem>
+
+					<Controls:HamburgerMenuIconItem Icon="{StaticResource appbar_email_minimal}"
+                                                     Label="Alerting Settings">
+						<Controls:HamburgerMenuIconItem.Tag>
+                            <Grid x:Name="AlertingSettings"></Grid>
+                        </Controls:HamburgerMenuIconItem.Tag>
+                    </Controls:HamburgerMenuIconItem>
+                </Controls:HamburgerMenuItemCollection>
+
+
+            </Controls:HamburgerMenu.ItemsSource>
+
+            <!--  Options  -->
+            <Controls:HamburgerMenu.OptionsItemsSource>
+                <Controls:HamburgerMenuItemCollection>
+                    <Controls:HamburgerMenuIconItem Icon="{StaticResource appbar_information_circle}"
+                                                    Label="About">
+						<Controls:HamburgerMenuIconItem.Tag>
+                            <Grid x:Name="About"></Grid>
+                        </Controls:HamburgerMenuIconItem.Tag>
+                    </Controls:HamburgerMenuIconItem>
+                </Controls:HamburgerMenuItemCollection>
+            </Controls:HamburgerMenu.OptionsItemsSource>
+
+			<!--  Content  -->
+			<Controls:HamburgerMenu.ContentTemplate>
+				<DataTemplate DataType="{x:Type Controls:HamburgerMenuItem}">
+					<Grid x:Name="TheContentGrid">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="48" />
+							<RowDefinition />
+						</Grid.RowDefinitions>
+						<Border Grid.Row="0"
+								Background="{StaticResource forecolor}">
+							<TextBlock x:Name="Header"
+										HorizontalAlignment="Center"
+										VerticalAlignment="Center"
+										FontSize="24"
+										Foreground="White"
+										Text="{Binding Label}" />
+						</Border>
+						<ContentControl x:Name="TheContent"
+										Grid.Row="1"
+										Focusable="False"
+										Foreground="{DynamicResource BlackBrush}"
+										Content="{Binding Tag}" />
+					</Grid>
+				</DataTemplate>
+			</Controls:HamburgerMenu.ContentTemplate>
+
+        </Controls:HamburgerMenu>
+
+<Grid x:Name="Overlay" Panel.ZIndex="2" Visibility="Hidden" VerticalAlignment="Center" Margin="30,50,30,50" Height="200" Width="750">
+				<Grid.Background>
+				<SolidColorBrush Color="DimGray" Opacity=".8"/>
+				</Grid.Background>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<Border x:Name="iconDialog" BorderThickness="0" Grid.Row="0"  CornerRadius="50,50,50,50" BorderBrush="Black" Background="white"
+			Width="70" Height="70" Margin="50,20,50,10">
+			<Rectangle Width="25" Height="25" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="white">
+				<Rectangle.OpacityMask>
+					<VisualBrush  Stretch="Fill" Visual="{StaticResource appbar_3d_3ds}"/>
+				</Rectangle.OpacityMask>
+			</Rectangle>
+		</Border>
+					<TextBlock x:Name="message" Text="" FontSize="20" Foreground="White" Grid.Row="1" HorizontalAlignment="Center" Margin="50,10,50,10"/>
+					<StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
+						<Button x:Name="buttonOK" Foreground="White" Background="{StaticResource forecolor}" Width="100" Margin="10,0,10,0">OK</Button>
+						<Button x:Name="buttonCancel" Foreground="White" Background="{StaticResource forecolor}" Width="100" Margin="10,0,10,0">Cancel</Button>
+					</StackPanel>
+		</Grid>
+
+    </Grid>
+
+</Controls:MetroWindow>

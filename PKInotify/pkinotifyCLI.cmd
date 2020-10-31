@@ -1,3 +1,4 @@
 @echo off
-powershell -noprofile -file "%~dp0\bin\pkinotifyCLI.ps1"
+powershell -noprofile -file ".\pkinotifyCLI.ps1"
+
 
