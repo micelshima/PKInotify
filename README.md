@@ -6,7 +6,7 @@ pkinotifyGUI will show a form to fill in with your infrastructure settings:
     CA names an servernames
     path of the CLR distribution
     certificate templates to check
-    smtp settings and warning threshold for sending the emails 
+    SMTP settings and warning threshold for sending the emails 
 
 pkinotifyCLI will connect to the CDP and CAs given in the form and fill a SQLite database with the CRL's and certificates info.
 
@@ -14,12 +14,6 @@ The idea is to schedule pkinotifyCLI once of twice per week and manually execute
 
 Then you can exclude the certificates which are not in production (in use) and add granular email notifications if needed
 
-![alt tag](https://3.bp.blogspot.com/-tARKP7Yanw0/WLvwJsE3AeI/AAAAAAAAB7U/-DamEXxqXSMXkile0wGvvFVaAL59pWjvQCLcB/s1600/Sin%2Bt%25C3%25ADtulo-1.jpg)
+![alt tag](https://1.bp.blogspot.com/-adJuCWM-58Y/X53TDEgUyAI/AAAAAAAACRo/otP-UYoBsMobS9u6q_QmDGs1GAkkO3tjwCLcBGAsYHQ/s1100/Captura.JPG)
 
-GUI USAGE
 
-    Single clicking an item will copy the information on the textboxes above so you can copy the text somewhere else.
-    Double clicking an item in the listboxes will delete the selected item. It will also copy the information on the textboxes above in case you want to modify and insert the item again in the database.
-    Orange "tick" button will insert the info in the textboxes in the database
-    Certificate items will be shown in gray if they are disabled (in use = false) and yellow if the remaining expiration days are less than CER warning in settings tab.
-    Form will display in red if a CRL or CER is in Warning. 
