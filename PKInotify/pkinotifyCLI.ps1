@@ -8,7 +8,6 @@ Function send-email($smtpServer, $emailFrom, $subject, $body, $mail) {
 	$MailMessage = new-object Net.Mail.MailMessage($emailFrom, $mail, $subject, $body)
 	$MailMessage.IsBodyHtml = $true
 	$MailMessage.ReplyTo = $emailFrom
-	$MailMessage.Bcc.Add("mvalencia@acciona.com")
 	$smtp.Send($MailMessage)
 	'{0:dd/MM/yyyy HH:mm:ss}	{1}	{2}' -f (get-date), $mail, $body | out-file "$Psscriptroot\logs\pkinotify_mailing.log" -append
 } #fin send-email
@@ -125,7 +124,7 @@ if (![bool]$nomailing) {
 		$subject = "PKInotify: Caducidad CER's"
 		$targetmails = $cermails
 		if ($_.values.length -gt 1) { $targetmails += $_.values }
-		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est·n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat·logo de Servicios TIC > TIC > Servidores y SW Base > GestiÛn de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
+		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est√°n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat√°logo de Servicios TIC > TIC > Servidores y SW Base > Gesti√≥n de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
 		$_.group | sort days | % { $body += "<tr><td>{0:dd/MM/yyyy}</td><td>{3:0} dias</td><td>{1}</td><td>{2}</td></tr>" -f $_.notafter, $_.commonname, $_.ca, $_.days }
 		$body += "</table></body></html>"
 		send-email $settings.smtpserver $settings.emailFrom $subject $body $($targetmails -join ",")
