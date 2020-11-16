@@ -1,17 +1,27 @@
 #Monitor de caducidad de certificados y CRL's
-#Mikel V. 2020/09/21
+#Mikel V. 05/12/2016
 param(
 	[switch]$nomailing
 )
-Function send-email($smtpServer, $emailFrom, $subject, $body, $mail) {
+Function send-email() {
+param(
+		[string]$mail,
+		[string]$subject,
+		[string]$body,
+		[string]$smtpServer,
+		[string]$emailFrom,
+		$CC
+	)
 	$smtp = new-object Net.Mail.SmtpClient($smtpServer)
 	$MailMessage = new-object Net.Mail.MailMessage($emailFrom, $mail, $subject, $body)
+	if([bool]$CC){$CC | % { $MailMessage.cc.Add($_) }}
 	$MailMessage.IsBodyHtml = $true
 	$MailMessage.ReplyTo = $emailFrom
 	$smtp.Send($MailMessage)
-	'{0:dd/MM/yyyy HH:mm:ss}	{1}	{2}' -f (get-date), $mail, $body | out-file "$Psscriptroot\logs\pkinotify_mailing.log" -append
+	'{0:dd/MM/yyyy HH:mm:ss}	{1}+{2}	{3}' -f (get-date), $mail, $cc,$body | out-file "$Psscriptroot\logs\pkinotify_mailing.log" -append
 } #fin send-email
 Function get-cert($pkiservers, $templates, $now) {
+	#$objcerts=new-object system.collections.arraylist
 	$objcerts = @()
 	foreach ($pkiserver in $pkiservers) {
 		foreach ($template in $templates) {
@@ -41,6 +51,7 @@ Function get-cert($pkiservers, $templates, $now) {
 					$cert.notafter = $_ -replace ("  Certificate Expiration Date: ")
 					$cert.notafter = get-date $cert.notafter
 					$cert.ca = $pkiserver.CA
+					#$objcerts.add($cert)
 					$objcerts += $cert
 				}
 			}#fin %
@@ -53,7 +64,7 @@ Function get-cert($pkiservers, $templates, $now) {
 if (!(test-path "$PSScriptRoot\logs")) { md "$PSScriptRoot\logs" | out-null }
 if (test-path "$PSScriptRoot\logs\sqlite.cer.err.txt") { remove-item "$PSScriptRoot\logs\sqlite.cer.err.txt" }
 $database = "$PSScriptRoot\data\pkinotify.s3db"
-import-module "$PSScriptRoot\SQliteModule"
+import-module "$PSScriptRoot\..\_Modules\SQLiteModule"
 #Cargo las librerias de Mono (CRL's)
 Add-Type -Path "$PSScriptRoot\assembly\Mono.Security.dll"
 #Compruebo los settings
@@ -70,10 +81,12 @@ $cermails += $mails | select -expand mail
 write-host "CHECKING CRL's" -fore green
 $qry = "select distinct cdp from ca"
 $CDPpaths = read-SQLite $database $qry
+
 $CDPpaths | % {
 	$CRLfiles = get-childitem "$($_.cdp)\*.crl"
 	foreach ($CRLfile in $CRLfiles) {
 		$CRL = [Mono.Security.X509.X509Crl]::CreateFromFile($CRLfile.fullname)
+		#$daysleft=(new-timespan -start $ahora -end $CRL.NextUpdate).totaldays
 		$qry = "insert into crl(cdp,crl,expirationdate) values('{0}','{1}','{2:yyyy-MM-dd HH:mm:ss}')" -f $_.cdp, $crlfile.name, $crl.nextupdate
 		try {
 			write-SQLite $database $qry
@@ -94,7 +107,7 @@ if (![bool]$nomailing) {
 	$CRLs | % {
 		$subject = "PKInotify: Caducidad CRL's"
 		$body = "<html><body><p>Buenos dias,</p><p>El {0:dd/MM/yyyy} (en {3:0} dias) caduca la CRL <b>{1}</b> en {2}.</p></body></html>" -f $_.expirationdate, $_.crl, $_.cdp, $_.days
-		send-email $settings.smtpserver $settings.emailFrom $subject $body $($crlmails -join ",")
+		send-email -mail $($crlmails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom
 	}
 }
 write-host "CHECKING NEW CERTIFICATES" -fore green
@@ -106,6 +119,7 @@ $datepattern = (Get-Culture).datetimeformat.shortdatepattern
 $now = get-date -format $datepattern
 $objcerts = get-cert $pkiservers $($templates | select -expand id) $now
 $objcerts | % {
+	#write-SQLite $database $qry
 	$qry = "insert into cer(ca,commonname,template,notbefore,notafter,inuse,requestername) values('{0}','{1}','{2}','{3:yyyy-MM-dd} 00:00:00','{4:yyyy-MM-dd} 00:00:00',1,'{5}')" -f $_.ca, $_.commonname, $_.template, [datetime]$_.notbefore, [datetime]$_.notafter, $_.requestername
 	try {
 		write-SQLite $database $qry
@@ -113,6 +127,9 @@ $objcerts | % {
 	}
 	catch {
 		out-file "$PSScriptRoot\logs\sqlite.cer.err.txt" -input "$qry	$($_.exception.message)" -append
+		#$qry="update cer set notbefore='{2:yyyy-MM-dd HH:mm:ss}' where ca='{0}' and commonname='{1}' and notafter='{3:yyyy-MM-dd HH:mm:ss}'" -f $_.ca,$_.commonname,$_.notbefore,$_.notafter
+		#$qry
+		#write-SQLite $database $qry
 	}
 }
 
@@ -122,12 +139,15 @@ if (![bool]$nomailing) {
 	$CERs = read-SQLite $database $qry
 	$CERs | group mail | % {
 		$subject = "PKInotify: Caducidad CER's"
-		$targetmails = $cermails
-		if ($_.values.length -gt 1) { $targetmails += $_.values }
-		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est√°n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat√°logo de Servicios TIC > TIC > Servidores y SW Base > Gesti√≥n de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
+		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est·n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat·logo de Servicios TIC > TIC > Servidores y SW Base > GestiÛn de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
 		$_.group | sort days | % { $body += "<tr><td>{0:dd/MM/yyyy}</td><td>{3:0} dias</td><td>{1}</td><td>{2}</td></tr>" -f $_.notafter, $_.commonname, $_.ca, $_.days }
 		$body += "</table></body></html>"
-		send-email $settings.smtpserver $settings.emailFrom $subject $body $($targetmails -join ",")
+		if ([bool]$_.values) { 
+			send-email -mail $_.values -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom -cc $cermails
+		}
+		else{
+			send-email -mail $($cermails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom
+		}
 	}
 }
 #grabo la version
