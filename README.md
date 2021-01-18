@@ -10,7 +10,7 @@ pkinotifyGUI will show a form to fill in with your infrastructure settings:
 
 pkinotifyCLI will connect to the CDP and CAs given in the form and fill a SQLite database with the CRL's and certificates info.
 
-The idea is to schedule pkinotifyCLI once of twice per week and manually execute pkinotifiyGUI to manipulate all the information.
+The idea is to schedule pkinotifyCLI once of twice per week and manually execute pkinotifyGUI to manipulate all the information.
 
 Then you can exclude the certificates which are not in production (in use) and add granular email notifications if needed.
 If you need to delete a registry just clear the name and it will be deleted.
