@@ -1,4 +1,4 @@
-#Monitor de caducidad de certificados y CRL's
+Ôªø#Monitor de caducidad de certificados y CRL's
 #Mikel V. 05/12/2016
 param(
 	[switch]$nomailing
@@ -10,12 +10,15 @@ param(
 		[string]$body,
 		[string]$smtpServer,
 		[string]$emailFrom,
-		$CC
+		$CC,
+		[ValidateSet('Normal','High','Low')]
+		[string]$priority="Normal"
 	)
 	$smtp = new-object Net.Mail.SmtpClient($smtpServer)
 	$MailMessage = new-object Net.Mail.MailMessage($emailFrom, $mail, $subject, $body)
-	if([bool]$CC){$CC | % { $MailMessage.cc.Add($_) }}
+	if([bool]$CC){$CC | % { $MailMessage.Bcc.Add($_) }}
 	$MailMessage.IsBodyHtml = $true
+	$MailMessage.Priority = [System.Net.Mail.MailPriority]::$priority
 	$MailMessage.ReplyTo = $emailFrom
 	$smtp.Send($MailMessage)
 	'{0:dd/MM/yyyy HH:mm:ss}	{1}+{2}	{3}' -f (get-date), $mail, $cc,$body | out-file "$Psscriptroot\logs\pkinotify_mailing.log" -append
@@ -65,6 +68,8 @@ if (!(test-path "$PSScriptRoot\logs")) { md "$PSScriptRoot\logs" | out-null }
 if (test-path "$PSScriptRoot\logs\sqlite.cer.err.txt") { remove-item "$PSScriptRoot\logs\sqlite.cer.err.txt" }
 $database = "$PSScriptRoot\data\pkinotify.s3db"
 import-module "$PSScriptRoot\..\_Modules\SQLiteModule"
+$time = New-Object System.Diagnostics.Stopwatch
+$time.Start()
 #Cargo las librerias de Mono (CRL's)
 Add-Type -Path "$PSScriptRoot\assembly\Mono.Security.dll"
 #Compruebo los settings
@@ -83,7 +88,13 @@ $qry = "select distinct cdp from ca"
 $CDPpaths = read-SQLite $database $qry
 
 $CDPpaths | % {
-	$CRLfiles = get-childitem "$($_.cdp)\*.crl"
+	if($_.cdp -match "^http" -and $_.cdp -match "crl$"){
+		$CRLfiles=""|select name,fullname
+		$CRLfiles.name=split-path $_.cdp -leaf
+		CRLfiles.fullname="$($env:temp)\$($CRLfiles.name)"
+		$null=invoke-webrequest $_.cdp -outfile CRLfiles.fullname
+	}
+	elseif($_.cdp -match "\\\\"){$CRLfiles = get-childitem "$($_.cdp)\*.crl"}
 	foreach ($CRLfile in $CRLfiles) {
 		$CRL = [Mono.Security.X509.X509Crl]::CreateFromFile($CRLfile.fullname)
 		#$daysleft=(new-timespan -start $ahora -end $CRL.NextUpdate).totaldays
@@ -99,7 +110,7 @@ $CDPpaths | % {
 		}
 	}
 }
-
+$value=0
 if (![bool]$nomailing) {
 	write-host "SENDING CRL WARNING EMAILS" -fore green
 	$qry = "select *, (julianday(expirationdate) - julianday('NOW')) as days  from crl where (julianday(expirationdate) - julianday('NOW'))<{0}" -f $settings.crlwarning
@@ -107,7 +118,9 @@ if (![bool]$nomailing) {
 	$CRLs | % {
 		$subject = "PKInotify: Caducidad CRL's"
 		$body = "<html><body><p>Buenos dias,</p><p>El {0:dd/MM/yyyy} (en {3:0} dias) caduca la CRL <b>{1}</b> en {2}.</p></body></html>" -f $_.expirationdate, $_.crl, $_.cdp, $_.days
-		send-email -mail $($crlmails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom
+		if($_.days -lt 10){$priority='High'}else{$priority='Normal'}
+		send-email -mail $($crlmails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom -priority $priority
+		$value++
 	}
 }
 write-host "CHECKING NEW CERTIFICATES" -fore green
@@ -124,6 +137,10 @@ $objcerts | % {
 	try {
 		write-SQLite $database $qry
 		$qry
+		#marco con el "in use=false" el certificado antiguo si sigue vigente
+		$qry="update cer set inuse=0 where inuse=1 and commonname='{0}' and (julianday(notafter) - julianday('NOW'))<{1} and (julianday(notafter) - julianday('NOW'))>=0" -f $_.commonname, $settings.cerwarning
+		write-SQLite $database $qry
+		out-file "$PSScriptRoot\logs\sqlite.cer.ok.txt" -input $qry -append
 	}
 	catch {
 		out-file "$PSScriptRoot\logs\sqlite.cer.err.txt" -input "$qry	$($_.exception.message)" -append
@@ -135,18 +152,25 @@ $objcerts | % {
 
 if (![bool]$nomailing) {
 	write-host "SENDING CER WARNING EMAILS" -fore green
-	$qry = "select *, (julianday(notafter) - julianday('NOW')) as days  from cer where inuse=1 and (julianday(notafter) - julianday('NOW'))<{0} and (julianday(notafter) - julianday('NOW'))>=0" -f $settings.cerwarning
+	$qry = "select *, (julianday(notafter) - julianday('NOW')) as days  from cer where inuse=1 and (julianday(notafter) - julianday('NOW'))<{0} and (julianday(notafter) - julianday('NOW'))>=0 " -f $settings.cerwarning #and commonname='SAPB1IF'
 	$CERs = read-SQLite $database $qry
 	$CERs | group mail | % {
 		$subject = "PKInotify: Caducidad CER's"
-		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est·n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat·logo de Servicios TIC > TIC > Servidores y SW Base > GestiÛn de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
-		$_.group | sort days | % { $body += "<tr><td>{0:dd/MM/yyyy}</td><td>{3:0} dias</td><td>{1}</td><td>{2}</td></tr>" -f $_.notafter, $_.commonname, $_.ca, $_.days }
+		$body = "<html><body><p>Buenos dias,</p><p>Los siguientes certificados est√°n proximos a caducar, si es necesario renovarlos abre un ticket en ServiceNow:</p><p><b>Cat√°logo de Servicios TIC > TIC > Servidores y Base SW > Base SW > Gesti√≥n de Directorio Activo</b> y seleccionando <b>Certificados Internos / PKI</b> del desplegable.</p><table border='0'><tr  bgcolor='silver'><td><b>EXPIRATION DATE</b></td><td><b>DAYS LEFT</b></td><td><b>COMMON NAME</b></td><td><b>CA</b></td></tr>"
+		$priority='Normal'
+		$_.group | sort days | % {
+			$body += "<tr><td>{0:dd/MM/yyyy}</td><td>{3:0} dias</td><td>{1}</td><td>{2}</td></tr>" -f $_.notafter, $_.commonname, $_.ca, $_.days
+			if($_.days -lt 10){$priority='High'}
+		}
 		$body += "</table></body></html>"
-		if ([bool]$_.values) { 
-			send-email -mail $_.values -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom -cc $cermails
+		if ([bool][string]$_.values) {
+		#"hay valor en mails <{0}>" -f ($_.values -join " ")|write-host -fore yellow
+			send-email -mail $_.values -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom -cc $cermails -priority $priority
+			$value++
 		}
 		else{
-			send-email -mail $($cermails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom
+			send-email -mail $($cermails -join ",") -subject $subject -body $body -SMTPServer $settings.smtpserver -EmailFrom $settings.emailFrom -priority $priority
+			$value++
 		}
 	}
 }
@@ -157,3 +181,5 @@ foreach ($pkiserver in $pkiservers) {
 	$qry = "insert into version(ca) values('{0}')" -f $pkiserver.ca
 	write-SQLite $database $qry
 }
+$time.Stop()
+$time.Elapsed.totalmilliseconds|out-host
